@@ -17,11 +17,11 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 Servo servo1;
 Servo servo2;
 
-int currentAngle = 30;
+int currentAngle = 60;
 bool goingUp = true;
 bool isBreak = false;
 unsigned long lastUpdate = 0;
-const unsigned long interval = 0;  // ms
+const unsigned long interval = 20;  // ms
 
 
 void setup() {
@@ -43,14 +43,11 @@ void setup() {
   servo1.write(currentAngle);
   servo2.attach(SERVO_2_PIN, 500, 2500);
 
-  lcd.init();       // Khởi động LCD
-  lcd.backlight();  // Bật đèn nền
+  lcd.init();       
+  lcd.backlight();  
 }
 
 void loop() {
-
-  
-
   int khoi_value = analogRead(MQ_2_PIN);
   int fire_value = digitalRead(FIRE_DETECT_PIN);
   Serial.print("gia tri cua lua: ");
@@ -58,16 +55,23 @@ void loop() {
   Serial.print("gia tri cua khoi: ");
   Serial.println(khoi_value);
 
-  if (khoi_value > 3500) {
+  if(khoi_value>3500 && fire_value==LOW){
     lcd.setCursor(0, 1);
-    lcd.print("PHAT HIEN KHOI!");
+    lcd.print("DETECT KHOIVALUA");
+    digitalWrite(BUZZER_PIN, HIGH);
+    digitalWrite(WATER_PUMP, HIGH);
+    digitalWrite(FAN_PIN, HIGH);
+    digitalWrite(LED_PIN, HIGH);
+  } else if (khoi_value > 3500) {
+    lcd.setCursor(0, 1);
+    lcd.print("DETECT KHOI!");
     digitalWrite(BUZZER_PIN, HIGH);
     digitalWrite(FAN_PIN, HIGH);
     digitalWrite(LED_PIN, HIGH);
 
   } else if (fire_value == LOW) {
     lcd.setCursor(0, 1);
-    lcd.print("PHAT HIEN LUA!");
+    lcd.print("DETECT LUA!");
     digitalWrite(BUZZER_PIN, HIGH);
     digitalWrite(WATER_PUMP, HIGH);
     digitalWrite(LED_PIN, HIGH);
@@ -88,7 +92,7 @@ void loop() {
 
   if (!isBreak) {
     unsigned long now = millis();
-    if (1) {
+    if ((now-lastUpdate)>=interval) {
       lastUpdate = now;
 
       // cập nhật góc
